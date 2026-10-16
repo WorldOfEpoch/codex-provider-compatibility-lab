@@ -73,7 +73,7 @@ test('invalid history, missing required tools and unresolved identities fail', (
 });
 test('profiles require explicit capabilities and a supported protocol', () => {
   assert.throws(() => validateProfile({}), /invalid_provider_profile/);
-  assert.throws(() => validateProfile({ ...profile, wireApi: 'chat_completions' }), /unsupported_wire_api/);
+  assert.throws(() => validateProfile({ ...profile, wireApi: 'unknown_protocol' }), /unsupported_wire_api/);
   assert.throws(() => validateProfile({ ...profile, streaming: undefined }), /invalid_provider_profile/);
   assert.throws(() => validateProfile({ ...profile, maxInlineImageBytes: -1 }), /invalid_provider_profile/);
 });

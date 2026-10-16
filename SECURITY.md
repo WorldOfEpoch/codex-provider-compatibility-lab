@@ -1,13 +1,15 @@
 # Security
 
-This is an offline learning package. It has no provider client, listening port, credential store, installation hook, automatic retry loop, or startup entry.
+The model client performs network requests only when `run` or an explicitly opted-in `probe` is invoked. It contacts the selected operation URL using only the named credential environment variable. It does not read a Codex profile or key store, listen on a port, execute model tools, follow redirects, retry, or install background/startup components.
 
-The CLI reads only the explicitly supplied file and outputs a reduced diagnostic summary. It does not modify that file. Use invented examples rather than real conversations. The tests create and remove their own temporary example file; they do not inspect a Codex profile.
+Use a provider and endpoint you trust. An explicitly supplied endpoint receives your prompt and configured bearer credential. HTTPS is required except on literal loopback addresses. TLS uses Node's ordinary validation; changing the runtime trust/proxy environment changes that boundary.
 
-The protocol helpers are not a security boundary. They accept already parsed data, perform partial checks, and do not provide complete schema validation, transport security, history repair, or a production gateway.
+Deadlines and byte limits protect accepted request/response sizes. They are not a process sandbox or a strict allocation quota. Functions returning transformed requests or outputs preserve their content; only designated diagnostics/probe reports reduce it. Ordinary `run` output, including `--json`, is not redacted.
 
-The adapter returns the transformed request with its content intact. Only its `diagnostics` field is intended for reduced logging. Capability profiles express expectations; they do not verify the endpoint, authenticate a provider, or authorize sending data.
+The helpers apply a defined subset of protocol and history checks. They do not provide complete JSON Schema validation, authorization, content sanitization, tool execution, or repair of a damaged conversation. Applications integrating the library own argument validation and permissions.
 
-The publication audit is a narrow pattern check plus an exact file manifest. A pass is not proof that all credentials or personal information have been removed. Review every proposed file and diff.
+Setup creates only the explicitly chosen new file and refuses to overwrite it. Keep connection files outside the checkout. No secret belongs in a connection file; its key field is an environment-variable name. Unix file mode is requested when creating it; Windows access is governed by the destination's existing ACLs.
 
-Report ordinary defects with a minimal synthetic input, the expected result, the observed fixed error code, and the Node.js version. Never post real API keys, provider error bodies, session files, personal paths, or private prompts. Do not include a working secret as a detector test. If a report involves an actual disclosure, use GitHub's private vulnerability reporting option when available rather than a public issue.
+Tests use synthetic files and temporary loopback listeners. No production provider is contacted by CI. The publication audit checks an exact manifest and common secret/path patterns; it is a narrow guard, not proof that every sensitive fact has been removed. Review every diff.
+
+Report ordinary defects with a minimal synthetic input, expected/actual behavior, fixed error code, and runtime version. Do not post keys, cookies, private prompts, user paths, raw logs, or provider error bodies. For an actual disclosure or exploitable vulnerability, use this repository's [private vulnerability reporting](https://github.com/WorldOfEpoch/codex-provider-compatibility-lab/security/advisories/new).

@@ -1,12 +1,14 @@
 {
   "name": "codex-provider-compatibility-lab",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
-  "description": "Provider-neutral offline request adapters and synthetic regression tests for Responses-style model integrations.",
+  "description": "Explicit model clients, compatibility probes and regression tests for Responses and Chat Completions integrations.",
   "type": "module",
   "license": "MIT",
   "engines": { "node": ">=22" },
   "scripts": {
+    "setup": "node bin/lab.mjs init",
+    "client": "node bin/lab.mjs",
     "test": "node --test",
     "demo": "node bin/inspect.mjs fixtures/example-request.json",
     "audit": "node scripts/audit-publication.mjs"

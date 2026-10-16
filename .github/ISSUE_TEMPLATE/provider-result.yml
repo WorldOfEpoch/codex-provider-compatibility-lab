@@ -1,0 +1,46 @@
+name: Provider compatibility result
+description: Share a bounded live result or a reproducible compatibility failure.
+title: "[Provider result] "
+body:
+  - type: markdown
+    attributes:
+      value: "Use synthetic inputs only. Do not upload connection files, keys, private endpoints, prompts, raw logs, or provider error bodies. A result applies to the named versions and capabilities."
+  - type: input
+    id: versions
+    attributes:
+      label: Lab commit, Windows or other OS version, and Node version
+    validations:
+      required: true
+  - type: input
+    id: provider
+    attributes:
+      label: Public provider, model identifier, server version, and test date
+    validations:
+      required: true
+  - type: dropdown
+    id: protocol
+    attributes:
+      label: Protocol
+      options:
+        - responses
+        - chat_completions
+    validations:
+      required: true
+  - type: textarea
+    id: results
+    attributes:
+      label: Reduced probe report and capabilities tested
+      description: State text, streaming, function-call, and replay results separately. Mark untested features.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal synthetic reproduction, expected result, and limitation
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Publication review
+      options:
+        - label: I reviewed this report and removed credentials, private payloads, endpoints, and personal information.
+          required: true

@@ -1,4 +1,5 @@
 import { inspectHistory, imageSummary, makeToolPlan, translateHistory, translateToolChoice } from './compatibility.mjs';
+import { toChatRequest } from './chat-completions.mjs';
 
 const object = value => value !== null && typeof value === 'object' && !Array.isArray(value);
 const nonempty = value => typeof value === 'string' && value.length > 0;
@@ -10,11 +11,16 @@ const requestFields = new Set([
 
 export function validateProfile(profile) {
   if (!object(profile) || !nonempty(profile.id) || !nonempty(profile.model)) fail('invalid_provider_profile');
-  if (profile.wireApi !== 'responses') fail('unsupported_wire_api');
+  if (!['responses', 'chat_completions'].includes(profile.wireApi)) fail('unsupported_wire_api');
   if (!['native', 'flatten'].includes(profile.namespaces) ||
       !['stateless', 'server'].includes(profile.conversationState) ||
       ['functionTools', 'streaming', 'images'].some(key => typeof profile[key] !== 'boolean') ||
       !Number.isSafeInteger(profile.maxInlineImageBytes) || profile.maxInlineImageBytes < 0) fail('invalid_provider_profile');
+  const fields = ['id', 'model', 'wireApi', 'namespaces', 'conversationState', 'functionTools', 'streaming', 'images', 'maxInlineImageBytes', 'chatMaxTokensField'];
+  if (Object.keys(profile).some(key => !fields.includes(key))) fail('unsupported_profile_field');
+  if (profile.wireApi === 'chat_completions' &&
+      (profile.namespaces !== 'flatten' || profile.conversationState !== 'stateless' ||
+       !['max_tokens', 'max_completion_tokens', undefined].includes(profile.chatMaxTokensField))) fail('invalid_chat_profile');
   return structuredClone(profile);
 }
 
@@ -35,7 +41,7 @@ function hasImageParts(input) {
     item.content.some(part => object(part) && ['input_image', 'image_url'].includes(part.type)));
 }
 
-// Offline request preparation only. A profile declares an expected contract; it does not prove support.
+// Request preparation makes no network calls. Profiles declare expectations, not proven support.
 export function prepareRequest(request, rawProfile) {
   const profile = validateProfile(rawProfile);
   if (!object(request)) fail('request_object_required');
@@ -68,7 +74,7 @@ export function prepareRequest(request, rawProfile) {
     ? flattened
     : { tools: structuredClone(request.tools ?? []), mappings: [] };
   return {
-    request: outbound,
+    request: profile.wireApi === 'chat_completions' ? toChatRequest(outbound, profile) : outbound,
     plan,
     diagnostics: {
       checkedHistoryItems: history.checkedItems,

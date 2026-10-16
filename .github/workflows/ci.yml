@@ -1,4 +1,4 @@
-name: Offline compatibility tests
+name: Compatibility tests
 
 on:
   push:
@@ -24,5 +24,6 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
       - run: node --test
+      - run: node bin/lab.mjs help
       - run: node bin/inspect.mjs fixtures/example-request.json
       - run: node scripts/audit-publication.mjs

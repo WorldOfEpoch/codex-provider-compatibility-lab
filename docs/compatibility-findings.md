@@ -21,7 +21,7 @@ A global base-URL override made ordinary requests depend on the local relay even
 
 The old alias also obscured which provider a model name selected. A future experiment should use an explicitly named provider and an isolated scope, with a clear removal path and ownership of the process lifetime. Removing startup configuration and stopping a process are different operations: already-running clients can retain an old URL until restarted.
 
-Codex documents named custom providers and a separate `openai_base_url` override for the built-in provider. Configuration choices must be checked against the actual client being tested. This repository ships no Codex settings or live provider connection configuration. Its [offline adapter profiles](provider-adapters.md) describe expected capabilities without endpoints or credentials. [OpenAI advanced configuration](https://learn.chatgpt.com/docs/config-file/config-advanced)
+Codex documents named custom providers and a separate `openai_base_url` override for the built-in provider. Configuration choices must be checked against the actual client being tested. This repository ships no Codex settings. Its foreground client uses a separate, explicit connection file created by the user; [profiles](provider-adapters.md) declare expected capabilities. [OpenAI advanced configuration](https://learn.chatgpt.com/docs/config-file/config-advanced)
 
 ## 2. Validate history according to the item type
 
@@ -62,7 +62,7 @@ It restores function identities in `response.output_item.added`, `response.outpu
 
 The example accepts JSON-bearing SSE events plus that sentinel; it is not a general browser EventSource implementation. Malformed JSON fails with a fixed code. An incomplete last event is discarded, matching the standard's blank-line dispatch boundary. [WHATWG server-sent events](https://html.spec.whatwg.org/multipage/server-sent-events.html#event-stream-interpretation)
 
-The default 1 MiB limit counts decoded UTF-8 event text with normalized line separators. It is not a raw HTTP byte limit or a bound on the memory allocated by an upstream reader. This code does not implement transport timeouts, reconnection, backoff, WebSockets, HTTP headers, decompression limits, or cancellation across a network. These would need their own tests.
+The parser's default 1 MiB limit counts decoded UTF-8 event text with normalized line separators. It is not a raw HTTP byte limit or a bound on memory allocated by an upstream reader. The new client adds separate request/response limits, deadlines, cancellation, HTTP error handling, and strict completion checks. Loopback tests cover truncated framing and invalid compression. WebSockets, reconnect, and backoff remain outside its scope; see the [client contract](provider-adapters.md).
 
 The old relay relied on an HTTP/SSE fallback after declining WebSocket upgrades. That behavior must not be assumed for arbitrary clients. This lab does not test the fallback.
 
@@ -70,11 +70,11 @@ The old relay relied on an HTTP/SSE fallback after declining WebSocket upgrades.
 
 The legacy router used a 24 MiB budget for inline image transport data. This repository retains that number only as a configurable example in `imageSummary`. It counts encoded data-URI bytes in known message-image fields, not decoded pixel data or the total request size. Remote images are counted without being fetched. Tool outputs remain opaque.
 
-The lab does not resize or replace images. A future transport must distinguish attachment originals from transport copies, preserve alpha when required, and establish actual limits for the selected endpoint. Passing this accounting check proves none of those properties.
+The lab does not resize or replace images. Any application adding that behavior must distinguish attachment originals from transport copies, preserve alpha when required, and establish actual limits for the selected endpoint. Passing this accounting check proves none of those properties.
 
 ## 7. Diagnose without copying private payloads
 
-Parser errors and upstream response bodies can contain prompt fragments or credentials. The CLI reports fixed errors rather than echoing exception text or filenames. Its summary exposes counts and fixed field names, not request content. It reads at most 8 MiB and never writes the input.
+Parser errors and upstream response bodies can contain prompt fragments or credentials. The inspector reports fixed errors rather than echoing exception text or filenames. Its summary exposes counts and fixed field names, not request content. It reads at most 8 MiB and never writes the input. The foreground client's doctor and probe also produce reduced diagnostics. Ordinary run output deliberately contains the answer and must not be treated as redacted.
 
 The publication audit allows only reviewed files and checks several common secret and personal-path patterns. It cannot identify every secret or private fact. Human review, synthetic fixtures, an explicit manifest, and a fresh Git history are separate safeguards.
 
@@ -84,6 +84,6 @@ Run `node --test` to see the current executable cases. CI exercises Node.js 22 a
 
 No live requests to Space Bunny were made to prepare this package. No model pricing, availability, latency, or present-day provider compatibility is claimed. No plugin-directory submission or upstream bug acceptance is implied by publishing this repository.
 
-The most useful future contribution is one failing synthetic case with its expected behavior, relevant protocol reference, and explicit evidence boundary. A live test would be a separate activity requiring an isolated environment, an explicit provider/model, a bounded budget, and independent authorization.
+The most useful contribution is one failing synthetic case with its expected behavior, relevant protocol reference, and explicit evidence boundary. A live probe is an explicit user operation requiring a selected provider/model, the user's own account access, and a bounded budget. CI never performs it.
 
-The public adapter now provides a reusable entry point for applying these lessons to another explicitly selected model. Profiles and tests can be improved independently of the retired integration; see the [current scope and roadmap](provider-adapters.md).
+The public client provides a reusable entry point for applying these lessons to another explicitly selected model. Profiles and tests can improve independently of the retired integration; see the [current client scope](provider-adapters.md), [evidence matrix](compatibility-matrix.md), and [reconnection case study](reconnection-case-study.md).

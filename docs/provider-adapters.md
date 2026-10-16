@@ -1,81 +1,73 @@
-# Adapting the method to other models
+# Client and adapter contract
 
-The reusable part is the compatibility method and adapter code. A model name is data in an explicit profile, not a built-in alias. Contributors can use the same tests to fix a translation defect or add a capability for another provider.
+The model is data in an explicit profile. Each request owns its tool-name mapping; concurrent requests do not share a mutable global mapping. The client contacts one configured endpoint without fallback, retries, redirects, or tool execution.
 
-This is a starting point for Responses-style integrations. It does not establish that every model works. Models using another protocol need a separately implemented and tested protocol adapter.
-
-## Use the offline adapter
-
-Run this example from the repository root using Node.js 22 or later. It reads the synthetic examples and makes no network request:
+## Library entry points
 
 ```js
-import { readFile } from 'node:fs/promises';
 import { prepareRequest } from './src/adapter.mjs';
-import { createEventTranslator } from './src/sse.mjs';
+import { generate, validateConnection } from './src/transport.mjs';
+import { probeConnection } from './src/probe.mjs';
 
-const profile = JSON.parse(await readFile('fixtures/example-profile.json', 'utf8'));
-const input = JSON.parse(await readFile('fixtures/example-request.json', 'utf8'));
-const prepared = prepareRequest(input, profile);
+// config and request are supplied by your application.
+const checked = validateConnection(config); // offline
+const prepared = prepareRequest(request, checked.profile); // offline
+console.log(prepared.diagnostics); // counts and fixed fields only
 
-// Counts and fixed codes only. Do not log prepared.request with private inputs.
-console.log(prepared.diagnostics);
-
-// A downstream transport can use prepared.request and pipe JSON SSE bytes
-// through this transform. Creating it neither connects nor starts a process.
-const responseTransform = createEventTranslator(prepared.plan);
-responseTransform.destroy();
+// Explicit network operation. The optional signal cancels this request.
+const result = await generate(request, checked, { signal, onText: text => process.stdout.write(text) });
+// result.outputText and result.output contain the actual model response.
 ```
 
-`prepared.request` is the transformed request, including its original content. It is not redacted and must not be treated as a safe log. `prepared.plan` carries the matching tool-name mapping for response restoration. Keep a plan with the request that created it; never share one mutable global plan across concurrent requests.
+This is illustrative library code: `config`, `request`, and `signal` are application inputs, not globals supplied by the lab. `prepared.request`, tool arguments, and model output contain original content and must not be logged as redacted diagnostics. The `onText` callback runs during streaming and may return a promise, which shares the request deadline. Keep synchronous work brief; callback errors fail the operation. No rollback of already displayed text is possible.
 
-For a complete, non-streaming response, restore its output identities with:
+`probeConnection(config, { network: true, tools: true, maxTokens: 128, signal })` runs the synthetic cases. Its enumerable report excludes payloads and credentials. The non-enumerable `failure` property is an internal Error; applications should map it to a fixed code rather than serialize arbitrary error objects.
 
-```js
-import { restoreEvent } from './src/compatibility.mjs';
-const restored = restoreEvent(
-  { type: 'response.completed', response: syntheticResponse },
-  prepared.plan
-).response;
-```
+## Connection and profile
 
-Here `syntheticResponse` represents a response supplied by your own test or transport; the lab does not fetch one.
+`schemaVersion: 1`, `endpoint`, `apiKeyEnv` (name or null), `profile`, `timeoutMs`, and `maxResponseBytes` are the connection fields. Unknown fields fail. The endpoint must be HTTPS, or HTTP on a literal loopback address, and end in the matching operation path. The only credential read is the explicitly named environment variable. It becomes a bearer header for that endpoint.
 
-## Profile contract
-
-| Field | Meaning |
+| Profile field | Meaning |
 | --- | --- |
-| `id` | A descriptive profile label; diagnostics do not print it |
-| `model` | Explicit target model; a different model already present in the input is rejected |
-| `wireApi` | Currently only `responses` is implemented |
-| `namespaces` | `flatten` maps namespace/tool tuples; `native` retains them |
-| `conversationState` | `stateless` rejects stored conversations and sets `store: false`; `server` preserves the supplied state options |
-| `functionTools` | Whether function-tool definitions and choices may be requested |
-| `streaming` | Whether `stream: true` may be requested |
-| `images` | Whether recognized message-image parts may be requested |
-| `maxInlineImageBytes` | Local budget for encoded inline image URIs; not an inferred provider limit |
+| `id`, `model` | Required explicit labels; a different model in a request is rejected |
+| `wireApi` | `responses` or `chat_completions` |
+| `namespaces` | `flatten` maps function identities; Responses can also declare `native` |
+| `conversationState` | `stateless` rejects stored state and sets `store: false`; Responses can declare `server` |
+| `functionTools`, `streaming`, `images` | Boolean expectations checked before sending |
+| `maxInlineImageBytes` | Budget for encoded inline image URIs; not a provider limit |
+| `chatMaxTokensField` | Chat only: `max_tokens` (default) or `max_completion_tokens` |
 
-A profile is a declared expectation. It is not a provider discovery result or proof of compatibility. The supplied profile is entirely fictional. It contains no endpoint or credential.
+Chat Completions requires `flatten` and `stateless`. Setup chooses these for both protocols. Native namespaces and server-managed Responses state require separate endpoint evidence; the default probe is designed around stateless replay. Profiles declare expectations, not discovered capabilities.
 
-## Implemented request scope
+## Request and response subset
 
-The adapter accepts `model`, `input`, `instructions`, `tools`, `tool_choice`, `parallel_tool_calls`, `stream`, `max_output_tokens`, `store`, and `previous_response_id`. Unknown request fields fail with `unsupported_request_field`. New capabilities must have explicit behavior and tests before they are accepted.
+The common input accepts `model`, `input`, `instructions`, `tools`, `tool_choice`, `parallel_tool_calls`, `stream`, `max_output_tokens`, `store`, and `previous_response_id`. Unknown top-level request options fail. Reasoning controls, structured output formats, hosted search, custom tools, compaction, audio, and WebSockets are not implemented.
 
-Only function tools, one namespace level, the control choices `auto`/`none`/`required`, and an explicit function choice are supported. Missing required tools, unsupported hosted/custom definitions, unresolved namespaced history, and malformed checked history items fail.
+Function definitions, one namespace level, control choices `auto`/`none`/`required`, and explicit function choice are supported. Namespace tuples receive reversible wire names. Opaque arguments and tool results are not recursively rewritten. Missing IDs and malformed checked history fail; IDs are never invented to repair a conversation.
 
-The adapter applies partial history checks, not full message or schema validation. Unknown history item types and provider-specific function parameters still need review. Native namespace mode preserves namespace metadata; flattening does not. Image accounting excludes remote image bytes, file-ID content, and opaque tool outputs. Those limitations apply even when a profile declares image support.
+Chat conversion supports text instructions/messages, recognized image URL parts, function calls, and string function results. Consecutive function calls are grouped into an assistant tool-call message. Calls must have unique IDs and matched results before another message. Ambiguous, unfinished, duplicate, or unsupported history fails. File-ID images and reasoning history are unsupported in this conversion.
 
-## How others can improve it
+Responses history checks remain partial, not a complete schema validator. Images receive accounting checks, without download, decoding, resizing, or pixel validation. The selected provider must validate its own schemas; the calling application must validate tool arguments against its allowed schema before execution.
 
-| Area | Current state | Useful next contribution |
-| --- | --- | --- |
-| Provider selection | Explicit target model, no global settings changes | Synthetic profile plus evidence for a particular endpoint's capabilities |
-| Tools and history | Shared mapping and fail-on-unsupported behavior | Regression cases for additional schemas, choices, or history rules |
-| Streaming | Offline JSON SSE transform | Additional event envelopes with chunk-boundary tests |
-| Reasoning and output formats | Rejected as unsupported request fields | A documented capability contract and round-trip tests |
-| Other protocols | Rejected | A distinct protocol module with mappings for requests, responses, tools, errors, and streams |
-| Live transport | Absent | Separately reviewed authentication, timeouts, cancellation, backoff, response-size limits, and provider-isolation tests |
-| Desktop or plugin packaging | Absent | An explicit integration design that does not override unrelated chats or create restart loops |
+Completed outputs are normalized to `outputText` plus an `output` array of messages/function calls (and supported opaque Responses reasoning items). Chat expects a single assistant choice and `stop` or `tool_calls` completion. Refusals, length-limited output, unsupported vendor message fields, and incomplete/failed responses do not become successful answers.
 
-Use the [contribution workflow](../CONTRIBUTING.md) to add a minimal failing case, fix its existing owner, and document the evidence. Claims of live support should name the client, protocol, provider/model, tested capabilities, date, and limitations. A passing synthetic profile alone must not be labeled live support.
+## Network and streaming boundaries
 
-The retired Space Bunny integration remains retired. Improving this provider-neutral method does not require reactivating it.
+The serialized request limit is 8 MiB. Responses have a configurable decoded-byte limit, default 8 MiB and maximum 64 MiB. Events have a separate limit of at most 1 MiB. These checks bound accepted content; the network/runtime can allocate a chunk before the client checks it. They are not a hard process-memory quota.
+
+One deadline covers fetch and body consumption. Ctrl+C or an AbortSignal cancels it. HTTP errors map to fixed codes without reading/printing error bodies. JSON/SSE content types and UTF-8 are checked. Broken compression, premature EOF, mismatched streamed/final content, and invalid JSON fail. Local tests exercise real loopback HTTP framing as well as byte-level parser boundaries.
+
+Responses streams require semantic successful completion; Chat streams require a valid finish reason and `[DONE]`. An incomplete final SSE event is discarded by the parser and cannot satisfy completion. Text from a completion-only Responses stream is emitted once. `[DONE]` alone is not proof of a successful Responses answer. See [OpenAI streaming semantics](https://developers.openai.com/api/docs/guides/streaming-responses) and [Chat stream fields](https://developers.openai.com/api/reference/resources/chat/subresources/completions/streaming-events).
+
+## Extend the existing owner
+
+| Change | Owner |
+| --- | --- |
+| Shared validation, names, history, accounting | `src/compatibility.mjs`, `src/adapter.mjs` |
+| Chat request/complete-response mapping | `src/chat-completions.mjs` |
+| SSE byte/event parser | `src/sse.mjs` |
+| HTTP limits and protocol stream completion | `src/transport.mjs` |
+| Synthetic live capability cases | `src/probe.mjs` |
+| Foreground setup and commands | `bin/lab.mjs` |
+
+Add a failing synthetic case before extending a capability. Use [CONTRIBUTING](../CONTRIBUTING.md) and preserve the distinction between mock coverage, a live provider result, and actual desktop/plugin acceptance. Improving this code never requires reactivating Space Bunny.

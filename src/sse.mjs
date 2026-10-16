@@ -3,8 +3,10 @@ import { StringDecoder } from 'node:string_decoder';
 import { restoreEvent } from './compatibility.mjs';
 
 // Transforms complete SSE events. Never assumes a network chunk equals a line or JSON value.
-export function createEventTranslator(plan, { maxEventBytes = 1024 * 1024 } = {}) {
+export function createEventTranslator(plan, { maxEventBytes = 1024 * 1024, onEvent, onDone } = {}) {
   if (!Number.isSafeInteger(maxEventBytes) || maxEventBytes < 1) throw new Error('invalid_event_limit');
+  if ((onEvent !== undefined && typeof onEvent !== 'function') ||
+      (onDone !== undefined && typeof onDone !== 'function')) throw new Error('invalid_event_observer');
   const decoder = new StringDecoder('utf8');
   let pending = '';
   let atStart = true;
@@ -26,7 +28,9 @@ export function createEventTranslator(plan, { maxEventBytes = 1024 * 1024 } = {}
       let value;
       try { value = JSON.parse(data.join('\n')); }
       catch { throw new Error('invalid_sse_json'); }
-      const encoded = 'data: ' + JSON.stringify(restoreEvent(value, plan));
+      const restored = restoreEvent(value, plan);
+      onEvent?.(restored);
+      const encoded = 'data: ' + JSON.stringify(restored);
       let written = false;
       lines = lines.flatMap(line => {
         if (!line.startsWith('data:') && line !== 'data') return [line];
@@ -34,7 +38,7 @@ export function createEventTranslator(plan, { maxEventBytes = 1024 * 1024 } = {}
         written = true;
         return [encoded];
       });
-    }
+    } else if (data.length) onDone?.();
     stream.push(lines.join('\n') + '\n\n');
     lines = [];
     eventBytes = 0;

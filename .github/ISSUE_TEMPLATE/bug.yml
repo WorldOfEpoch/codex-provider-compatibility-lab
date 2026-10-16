@@ -1,0 +1,29 @@
+name: Bug or improvement
+description: Report a reproducible defect or propose a focused capability.
+title: "[Lab] "
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem and desired behavior
+      description: Explain the user-visible result and which existing behavior owns it.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Synthetic steps, exact versions, and actual result
+      description: Do not attach private inputs, connection files, keys, or raw provider errors.
+    validations:
+      required: true
+  - type: textarea
+    id: validation
+    attributes:
+      label: Suggested regression check or protocol reference
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Publication review
+      options:
+        - label: This report uses synthetic material and contains no credentials or private data.
+          required: true

@@ -1,14 +1,55 @@
 # Codex provider compatibility lab
 
-Provider-neutral offline request adapters, regression examples, and lessons from a retired local provider-routing experiment involving Space Bunny Alpha. The method can be extended for other models through explicit capability profiles and reproducible tests.
+A small, explicit client and test lab for using models through **Responses** or **Chat Completions** endpoints. Choose a model, create a connection file, check it offline, and run a prompt or a bounded compatibility probe. Built for Windows, with Windows and Linux CI.
 
-This repository does not install a plugin, start a server, connect to a provider, change Codex settings, or require credentials. The original router is retired. This project is independent of OpenAI and OpenRouter.
+**0.3.0 is a preview.** The client is tested against simulated providers; no named live model has been certified by this release. It implements a documented subset of each protocol. This is an independent community project, not an official OpenAI integration or a replacement for Codex desktop.
 
-The request adapter currently targets a defined subset of the Responses protocol. Other protocols and capabilities require additional implementation and validation; this is not a claim that every model already works. [Use and extend the adapter](docs/provider-adapters.md).
+## Get started
 
-## Run the examples
+Use Node.js 22 or later. Download a tagged source archive or clone this repository. There are no package dependencies to install. Run these commands from its folder:
 
-Use Node.js 22 or later. There are no package dependencies and no installation step.
+```sh
+node bin/lab.mjs init
+node bin/lab.mjs doctor --config ../compatibility-provider.local.json
+node bin/lab.mjs run --config ../compatibility-provider.local.json --prompt "Say hello briefly." --stream
+```
+
+Setup asks for the full endpoint, exact model ID, optional API-key **environment-variable name**, and expected capabilities. It creates a new file outside the checkout by default. `doctor` stays offline; `run` sends your prompt to that endpoint. See the [Windows setup guide](docs/getting-started.md) for local servers, credentials, troubleshooting, and uninstalling.
+
+To deliberately test a provider with synthetic prompts:
+
+```sh
+node bin/lab.mjs probe --config ../compatibility-provider.local.json --network
+node bin/lab.mjs probe --config ../compatibility-provider.local.json --network --tools
+```
+
+The first command makes up to two requests; the second makes up to four when streaming and tools are declared. They stop on the first failure. Each request defaults to 128 output tokens and a 30-second deadline. Providers may charge for these requests. No returned tool is executed. [Read what the tests establish](docs/compatibility-matrix.md).
+
+## What it does
+
+| Capability | Current behavior |
+| --- | --- |
+| Explicit provider selection | One connection file, one endpoint, one model; no automatic fallback |
+| Responses and Chat Completions | JSON answers, streaming text, function calls, and tool-result replay |
+| Namespaced tools | Reversible tool-name mapping; unsupported tools fail explicitly |
+| Bounded requests | Deadlines, cancellation, request/response limits, no retries or redirects |
+| Offline inspection | Synthetic history checks, image byte accounting, setup validation |
+| Useful failure reports | Fixed error codes without upstream error bodies or credentials |
+
+The client runs in the foreground. It does not change Codex settings, start a relay, execute tools, install a plugin, or create a startup entry. The old Space Bunny integration remains retired. The [reconnection case study](docs/reconnection-case-study.md) explains its confirmed role and the separate errors that remain unresolved.
+
+## Improve it with us
+
+Our goal is a dependable way to choose models and compose useful, permissioned plugins. The [open ecosystem roadmap](docs/open-ecosystem-roadmap.md) covers LifePortal Connect, calendar/work/meeting/activity modules, capture and splats, Video Studio, and optional VR. Those integrations are goals; this repository currently delivers the model client and its test method.
+
+- [Start using the client](docs/getting-started.md)
+- [Adapter and library contract](docs/provider-adapters.md)
+- [Compatibility evidence and limitations](docs/compatibility-matrix.md)
+- [Contribute a provider result or fix](CONTRIBUTING.md)
+- [Windows Codex problem records](https://github.com/WorldOfEpoch/codex-windows-community)
+- [Release changes](CHANGELOG.md), [security](SECURITY.md), and [provenance](docs/provenance.md)
+
+## Run the checks
 
 ```sh
 node --test
@@ -16,33 +57,6 @@ node bin/inspect.mjs fixtures/example-request.json
 node scripts/audit-publication.mjs
 ```
 
-The inspector reads one JSON request and prints counts, field names, and fixed diagnostic codes. It does not print prompts, tool arguments, results, model names, filenames, or credentials. Prefer synthetic inputs.
-
-Exit codes: `0` means the implemented checks found no issues; `1` means a checked history shape or tool plan failed; `2` means usage, parsing, or reading failed. Passing is not proof that a provider will accept the request. Unknown history item types are counted as `otherItems`, not validated.
-
-The CLI has an 8 MiB input limit. The library's separate image-accounting helper defaults to a historical 24 MiB budget for encoded image URIs; this is a local example policy, not a provider limit. The CLI cannot read a request large enough to exceed that default. See the [findings and limitations](docs/compatibility-findings.md) before reusing a helper.
-
-## What you can learn
-
-| Area | Reproducible check | Evidence boundary |
-| --- | --- | --- |
-| Provider profiles | Explicit model selection and capability checks | A declared contract, not live provider discovery or certification |
-| Tool history | Missing call IDs, output shapes, JSON arguments | Partial shape checks, not history repair or a full API schema |
-| Namespaces | Distinct wire names, collision rejection, round-trip restoration | Function tools only; hosted/custom tools fail explicitly |
-| Streaming | UTF-8 split across chunks, line endings, multi-line events, incomplete events | JSON SSE transformation only; no HTTP, WebSocket, reconnect, or provider test |
-| Images | Count inline encoded bytes without changing content | No decoding, resizing, remote download, or provider-limit certification |
-| Publication | Explicit file manifest and common credential/path patterns | A narrow guard plus review, not a comprehensive secret detector |
-
-The tests use invented conversations and tool names. No real sessions, credentials, provider profiles, model catalogs, private diagnostics, or third-party application source are included.
-
-## Read and extend
-
-- [Compatibility findings](docs/compatibility-findings.md) explains the failure modes and separates historical observations from current offline results.
-- [Provenance](docs/provenance.md) explains how the public package was prepared.
-- [Contributing](CONTRIBUTING.md) describes how to add a minimal regression case.
-- [Security](SECURITY.md) describes the project's boundaries and safe reports.
-
-CI runs the same offline commands on Windows and Linux with Node.js 22 and 24. Its result applies to these examples at the tested commit. No live Space Bunny, Codex desktop, connector, or model compatibility is certified.
+Tests use synthetic payloads and temporary loopback servers, without provider accounts. CI runs Node.js 22 and 24 on Windows and Linux. Keep private connection files outside this checkout: the publication audit intentionally rejects files outside its reviewed manifest.
 
 Licensed under [MIT](LICENSE).
-- [Provider adapters](docs/provider-adapters.md) includes the reusable interface, profile fields, and contribution roadmap.
