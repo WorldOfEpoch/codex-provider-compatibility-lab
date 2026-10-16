@@ -1,0 +1,11 @@
+{
+  "id": "example-function-provider",
+  "model": "example/model",
+  "wireApi": "responses",
+  "namespaces": "flatten",
+  "conversationState": "stateless",
+  "functionTools": true,
+  "streaming": true,
+  "images": true,
+  "maxInlineImageBytes": 25165824
+}

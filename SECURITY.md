@@ -6,6 +6,8 @@ The CLI reads only the explicitly supplied file and outputs a reduced diagnostic
 
 The protocol helpers are not a security boundary. They accept already parsed data, perform partial checks, and do not provide complete schema validation, transport security, history repair, or a production gateway.
 
+The adapter returns the transformed request with its content intact. Only its `diagnostics` field is intended for reduced logging. Capability profiles express expectations; they do not verify the endpoint, authenticate a provider, or authorize sending data.
+
 The publication audit is a narrow pattern check plus an exact file manifest. A pass is not proof that all credentials or personal information have been removed. Review every proposed file and diff.
 
 Report ordinary defects with a minimal synthetic input, the expected result, the observed fixed error code, and the Node.js version. Never post real API keys, provider error bodies, session files, personal paths, or private prompts. Do not include a working secret as a detector test. If a report involves an actual disclosure, use GitHub's private vulnerability reporting option when available rather than a public issue.

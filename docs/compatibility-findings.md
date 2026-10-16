@@ -21,7 +21,7 @@ A global base-URL override made ordinary requests depend on the local relay even
 
 The old alias also obscured which provider a model name selected. A future experiment should use an explicitly named provider and an isolated scope, with a clear removal path and ownership of the process lifetime. Removing startup configuration and stopping a process are different operations: already-running clients can retain an old URL until restarted.
 
-Codex documents named custom providers and a separate `openai_base_url` override for the built-in provider. Configuration choices must be checked against the actual client being tested. This repository ships no provider configuration. [OpenAI advanced configuration](https://learn.chatgpt.com/docs/config-file/config-advanced)
+Codex documents named custom providers and a separate `openai_base_url` override for the built-in provider. Configuration choices must be checked against the actual client being tested. This repository ships no Codex settings or live provider connection configuration. Its [offline adapter profiles](provider-adapters.md) describe expected capabilities without endpoints or credentials. [OpenAI advanced configuration](https://learn.chatgpt.com/docs/config-file/config-advanced)
 
 ## 2. Validate history according to the item type
 
@@ -85,3 +85,5 @@ Run `node --test` to see the current executable cases. CI exercises Node.js 22 a
 No live requests to Space Bunny were made to prepare this package. No model pricing, availability, latency, or present-day provider compatibility is claimed. No plugin-directory submission or upstream bug acceptance is implied by publishing this repository.
 
 The most useful future contribution is one failing synthetic case with its expected behavior, relevant protocol reference, and explicit evidence boundary. A live test would be a separate activity requiring an isolated environment, an explicit provider/model, a bounded budget, and independent authorization.
+
+The public adapter now provides a reusable entry point for applying these lessons to another explicitly selected model. Profiles and tests can be improved independently of the retired integration; see the [current scope and roadmap](provider-adapters.md).

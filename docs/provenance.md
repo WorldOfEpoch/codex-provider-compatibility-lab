@@ -4,7 +4,7 @@ This public package was prepared on October 16, 2026 from lessons learned in the
 
 The legacy integration was a local adapter, not an official OpenAI or OpenRouter plugin. Its historical Space Bunny Alpha name is retained only to explain the case study. It has not been reactivated for this publication.
 
-The public implementation is a small extraction and rewrite of selected compatibility methods: item-specific history checks, namespace mapping, JSON SSE handling, and encoded-image accounting. New regression tests exercise those methods without an API key or network connection. All fixture text, IDs, tool names, and private-data sentinels are synthetic.
+The public implementation is a small extraction and rewrite of selected compatibility methods: item-specific history checks, namespace mapping, JSON SSE handling, and encoded-image accounting. A new provider-neutral adapter applies those methods through explicit capability profiles. Regression tests exercise them without an API key or network connection. All fixture text, IDs, tool names, profiles, and private-data sentinels are synthetic.
 
 The package excludes the operational proxy, model aliases and catalogs, startup watchers, launchers, credential-loading helpers, encrypted credential stores, personal configuration, session archives, memory, raw diagnostics, private endpoints, project-specific content, and third-party application source. No legacy Git history was imported.
 

@@ -1,8 +1,10 @@
 # Codex provider compatibility lab
 
-Offline regression examples and lessons from a retired local provider-routing experiment involving Space Bunny Alpha. The useful outcome is a set of small, reproducible compatibility checks that can be studied without reviving the old integration.
+Provider-neutral offline request adapters, regression examples, and lessons from a retired local provider-routing experiment involving Space Bunny Alpha. The method can be extended for other models through explicit capability profiles and reproducible tests.
 
 This repository does not install a plugin, start a server, connect to a provider, change Codex settings, or require credentials. The original router is retired. This project is independent of OpenAI and OpenRouter.
+
+The request adapter currently targets a defined subset of the Responses protocol. Other protocols and capabilities require additional implementation and validation; this is not a claim that every model already works. [Use and extend the adapter](docs/provider-adapters.md).
 
 ## Run the examples
 
@@ -24,6 +26,7 @@ The CLI has an 8 MiB input limit. The library's separate image-accounting helper
 
 | Area | Reproducible check | Evidence boundary |
 | --- | --- | --- |
+| Provider profiles | Explicit model selection and capability checks | A declared contract, not live provider discovery or certification |
 | Tool history | Missing call IDs, output shapes, JSON arguments | Partial shape checks, not history repair or a full API schema |
 | Namespaces | Distinct wire names, collision rejection, round-trip restoration | Function tools only; hosted/custom tools fail explicitly |
 | Streaming | UTF-8 split across chunks, line endings, multi-line events, incomplete events | JSON SSE transformation only; no HTTP, WebSocket, reconnect, or provider test |
@@ -42,3 +45,4 @@ The tests use invented conversations and tool names. No real sessions, credentia
 CI runs the same offline commands on Windows and Linux with Node.js 22 and 24. Its result applies to these examples at the tested commit. No live Space Bunny, Codex desktop, connector, or model compatibility is certified.
 
 Licensed under [MIT](LICENSE).
+- [Provider adapters](docs/provider-adapters.md) includes the reusable interface, profile fields, and contribution roadmap.

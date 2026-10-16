@@ -1,8 +1,8 @@
 {
   "name": "codex-provider-compatibility-lab",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
-  "description": "Offline, synthetic regression cases from a retired model-provider compatibility experiment.",
+  "description": "Provider-neutral offline request adapters and synthetic regression tests for Responses-style model integrations.",
   "type": "module",
   "license": "MIT",
   "engines": { "node": ">=22" },
