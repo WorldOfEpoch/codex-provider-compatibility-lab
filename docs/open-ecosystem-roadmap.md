@@ -14,7 +14,7 @@ This is the owner's direction for several projects. **Only the compatibility cli
 | Work and meetings | Tasks, preparation, meeting records, follow-up workflows | Planned modules with scoped account access |
 | Sports and activities | User-selected schedules, participation, reminders | Planned modules; use appropriate data sources and user preferences |
 | Calendar module | Google Calendar and later supported calendars | Planned integration; separate read access from event creation/change |
-| [Quest Gaussian Splat Capture](https://github.com/WorldOfEpoch/quest-gaussian-splat-capture) | Headset capture and a PC reconstruction bridge | Public documentation/release preparation; device acceptance belongs to each release |
+| [Quest Gaussian Splat Capture](https://github.com/WorldOfEpoch/quest-gaussian-splat-capture) | Headset capture and a PC reconstruction bridge | Public app/bridge/Blender source preview, setup guides and contributor tests; clean APK and fresh device acceptance pending |
 | Other capture clients, including Vive | Reuse the capture/receipt method through a device adapter | Target, not a claim that Quest camera code runs on a Vive |
 | Video Studio | Existing media workflow exposed through its original job commands | Planned public extraction after dependency, privacy, and licensing review |
 | Optional VR workspace | Access the same supported workspace functions in a headset | Planned; heavy processing still needs a PC or an explicitly configured compute host |
