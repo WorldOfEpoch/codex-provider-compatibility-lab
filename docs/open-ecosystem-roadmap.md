@@ -15,11 +15,15 @@ This is the owner's direction for several projects. **Only the compatibility cli
 | Sports and activities | User-selected schedules, participation, reminders | Planned modules; use appropriate data sources and user preferences |
 | Calendar module | Google Calendar and later supported calendars | Planned integration; separate read access from event creation/change |
 | [Quest Gaussian Splat Capture](https://github.com/WorldOfEpoch/quest-gaussian-splat-capture) | Headset capture and a PC reconstruction bridge | Public app/bridge/Blender source preview, setup guides and contributor tests; clean APK and fresh device acceptance pending |
+| [Luminax platform](https://github.com/WorldOfEpoch/luminax-platform) | Assistant core, local service bridge and Discord routing | Public source preview with inactive defaults and offline authorization/bridge tests; complete minimal-stack setup remains work |
+| [Zeus system](https://github.com/WorldOfEpoch/zeus-system) | Persistent work queue, six-member council analysis, owner review and command center | Public backend/frontend source and setup helper; offline tests/build pass; live model and PostgreSQL deployment need separate evidence |
 | Other capture clients, including Vive | Reuse the capture/receipt method through a device adapter | Target, not a claim that Quest camera code runs on a Vive |
 | Video Studio | Existing media workflow exposed through its original job commands | Planned public extraction after dependency, privacy, and licensing review |
 | Optional VR workspace | Access the same supported workspace functions in a headset | Planned; heavy processing still needs a PC or an explicitly configured compute host |
 
 Keep each substantial application in its own repository when its code and release boundary are ready. Share small, versioned contracts and reuse original command owners. Do not copy whole private projects, accounts, vendor SDKs, or model caches into a common repository.
+
+The Luminax Discord services and Zeus council currently have separate contracts. A scoped, authenticated adapter between them is a contribution goal; publishing both codebases does not establish a working live integration. The Zeus model adapter currently targets Ollama. Other providers need an adapter and named compatibility evidence before support is claimed.
 
 ## What a plugin should promise
 
