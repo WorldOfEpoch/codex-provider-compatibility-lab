@@ -1,0 +1,22 @@
+[
+  ".gitattributes",
+  ".github/workflows/ci.yml",
+  ".gitignore",
+  "CONTRIBUTING.md",
+  "LICENSE",
+  "PUBLICATION_FILES.json",
+  "README.md",
+  "SECURITY.md",
+  "bin/inspect.mjs",
+  "docs/compatibility-findings.md",
+  "docs/provenance.md",
+  "fixtures/example-request.json",
+  "package.json",
+  "scripts/audit-publication.mjs",
+  "src/compatibility.mjs",
+  "src/sse.mjs",
+  "test/cli.test.mjs",
+  "test/compatibility.test.mjs",
+  "test/publication.test.mjs",
+  "test/sse.test.mjs"
+]

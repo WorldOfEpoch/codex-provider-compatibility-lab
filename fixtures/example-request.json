@@ -1,0 +1,9 @@
+{
+  "model": "example/model",
+  "input": [
+    { "type": "message", "role": "user", "content": [{ "type": "input_text", "text": "Synthetic example only." }] },
+    { "type": "function_call", "call_id": "example-call-1", "namespace": "catalog", "name": "lookup", "arguments": "{\"id\":\"example\"}" },
+    { "type": "function_call_output", "call_id": "example-call-1", "output": "" }
+  ],
+  "tools": [{ "type": "namespace", "name": "catalog", "tools": [{ "type": "function", "name": "lookup", "parameters": { "type": "object", "properties": { "id": { "type": "string" } }, "required": ["id"], "additionalProperties": false } }] }]
+}

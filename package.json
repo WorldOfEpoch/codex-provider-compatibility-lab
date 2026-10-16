@@ -1,0 +1,14 @@
+{
+  "name": "codex-provider-compatibility-lab",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Offline, synthetic regression cases from a retired model-provider compatibility experiment.",
+  "type": "module",
+  "license": "MIT",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "test": "node --test",
+    "demo": "node bin/inspect.mjs fixtures/example-request.json",
+    "audit": "node scripts/audit-publication.mjs"
+  }
+}

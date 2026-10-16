@@ -1,0 +1,16 @@
+node_modules/
+coverage/
+.env
+.env.*
+*.log
+*.pid
+*.bak
+*.sqlite*
+*.jsonl
+*.xml
+settings.json
+status.json
+auth.json
+private/
+local/
+artifacts/
